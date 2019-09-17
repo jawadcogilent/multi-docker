@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t jawadcogilent/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true jawadcogilent/react-test npm test
+
+after_success:
+  - docker build -t jawadcogilent/multi-client ./client
+  - docker build -t jawadcogilent/multi-nginx ./nginx
+  - docker build -t jawadcogilent/multi-server ./server
+  - docker build -t jawadcogilent/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "DOCKER_ID" --password-stdin
+  # Take those images and push it to docker hub
+  - docker push jawadcogilent/multi-client
+  - docker push jawadcogilent/multi-nginx
+  - docker push jawadcogilent/multi-server
+  - docker push jawadcogilent/multi-worker
